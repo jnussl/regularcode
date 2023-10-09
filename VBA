@@ -1,0 +1,34 @@
+'将每个工作表单独另存为工作簿，保存在当前文件夹的拆分表下面，每保存一个会提示文件名，文件名可以设置
+'注意重名现象，尤其是总表肯定会跟原表重名，要优化代码，重名自动编号
+
+Sub 工作簿所有工作表拆分为单独工作簿()
+    '将活动工作簿wb拆分，每个ws单独保存为文件，文件保存在wb同一文件夹下单独文件夹内
+    Dim fso As Object, save_path$, save_file$, wb_name$
+    save_path = ""  '拆分后的表格保存路径，为空则保存至当前路径
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Application.ScreenUpdating = False  '关闭屏幕更新，加快程序运行
+    Application.DisplayAlerts = False   '不显示警告信息
+    '''注意：当存在ws与wb同名时，SaveAs会报错
+    With ActiveWorkbook
+        If save_path = "" Then save_path = ThisWorkbook.Path + "\拆分表"  'save_path未定义则为固定路径
+        MsgBox (save_path)
+        wb_name = .Name  '当前工作簿文件名和扩展名
+        If Not fso.FolderExists(save_path) Then fso.CreateFolder (save_path)  '创建文件夹
+        For Each sht In .Worksheets
+            sht.Copy     'ws在copy后自动生成一个新建wb
+            '保存文件全名（文件路径、文件名、扩展名），sheet名称命名
+            fName = sht.Cells(2, 5) '设置每个工作簿的文件名
+            fName = Replace(fName, "/", "")  '防止异常文件名出现
+            If fName = "" Then
+                MsgBox ("文件名为空")
+                fName = "NUll"
+            End If
+            save_file = save_path & "\" & fName & "." & "xls"
+            MsgBox (save_file)
+            ActiveWorkbook.SaveAs Filename:=save_file
+            ActiveWorkbook.Close (False)
+        Next
+    End With
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+End Sub
